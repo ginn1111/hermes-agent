@@ -8,6 +8,7 @@ import pytest
 
 import hermes_constants
 from hermes_constants import (
+    INDICATOR_STYLES,
     VALID_REASONING_EFFORTS,
     agent_browser_runnable,
     find_hermes_node_executable,
@@ -28,6 +29,10 @@ from hermes_constants import (
     set_hermes_home_override,
     with_hermes_node_path,
 )
+
+
+def test_indicator_styles_include_matrix():
+    assert INDICATOR_STYLES == ("ascii", "emoji", "kaomoji", "matrix", "unicode")
 
 
 class TestGetDefaultHermesRoot:

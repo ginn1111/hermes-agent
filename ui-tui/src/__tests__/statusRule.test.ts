@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
 import type { StatusBarSegments } from '../components/appChrome.js'
-import { busyIndicatorWidth, statusBarSegments, statusRuleWidths } from '../components/appChrome.js'
+import {
+  busyIndicatorWidth,
+  formatIndicatorVerb,
+  renderIndicator,
+  statusBarSegments,
+  statusRuleWidths
+} from '../components/appChrome.js'
 
 describe('statusRuleWidths', () => {
   it('keeps the status rule within the terminal width', () => {
@@ -113,8 +119,26 @@ describe('busyIndicatorWidth', () => {
   })
 
   it('reserves room for the elapsed-time tail only when a turn is timed', () => {
-    for (const style of ['kaomoji', 'emoji', 'ascii', 'unicode'] as const) {
+    for (const style of ['kaomoji', 'emoji', 'ascii', 'matrix', 'unicode'] as const) {
       expect(busyIndicatorWidth(style, true)).toBeGreaterThan(busyIndicatorWidth(style, false))
     }
+  })
+
+  it('renders the matrix icon and progress animation at each tick', () => {
+    const expected = [
+      '󱜙 ',
+      '󱚣 ',
+      '󰚩 ',
+      '󱚟 ',
+      '󱚝 ',
+      '󱚡 '
+    ]
+
+    expect(expected.map((_, tick) => renderIndicator('matrix', tick).frame)).toEqual(expected)
+    expect(renderIndicator('matrix', 0)).toMatchObject({ intervalMs: 2500, showVerb: true })
+  })
+
+  it('wraps the matrix verb in corner brackets', () => {
+    expect(formatIndicatorVerb('matrix', 'reasoning')).toBe('「 reasoning… 」')
   })
 })

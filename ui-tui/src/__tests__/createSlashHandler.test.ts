@@ -761,13 +761,22 @@ describe('createSlashHandler', () => {
     await vi.waitFor(() => expect(getUiState().indicatorStyle).toBe('emoji'))
   })
 
+  it('accepts the matrix indicator style', async () => {
+    const rpc = vi.fn(() => Promise.resolve({ value: 'matrix' }))
+    const ctx = buildCtx({ gateway: { ...buildGateway(), rpc } })
+
+    expect(createSlashHandler(ctx)('/indicator matrix')).toBe(true)
+    expect(rpc).toHaveBeenCalledWith('config.set', { key: 'indicator', value: 'matrix' })
+    await vi.waitFor(() => expect(getUiState().indicatorStyle).toBe('matrix'))
+  })
+
   it('rejects unknown indicator styles before hitting the gateway', () => {
     const rpc = vi.fn(() => Promise.resolve({}))
     const ctx = buildCtx({ gateway: { ...buildGateway(), rpc } })
 
     expect(createSlashHandler(ctx)('/indicator sparkle')).toBe(true)
     expect(rpc).not.toHaveBeenCalled()
-    expect(ctx.transcript.sys).toHaveBeenCalledWith('usage: /indicator [ascii|emoji|kaomoji|unicode]')
+    expect(ctx.transcript.sys).toHaveBeenCalledWith('usage: /indicator [ascii|emoji|kaomoji|matrix|unicode]')
   })
 
   it('drops stale slash.exec output after a newer slash', async () => {

@@ -3708,6 +3708,7 @@ class CLICommandsMixin:
             /indicator status       Show the current busy-indicator style
             /indicator kaomoji      Animated kaomoji faces (default)
             /indicator emoji        Emoji spinner
+            /indicator matrix       Matrix icon and progress indicator
             /indicator unicode      Braille spinner
             /indicator ascii        Plain ASCII spinner
 

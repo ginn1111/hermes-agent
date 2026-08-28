@@ -27,11 +27,14 @@ const HEART_COLORS = ['#ff5fa2', '#ff4d6d']
 // jitter when the ticker rotates between short/long verbs.
 export const VERB_PAD_LEN = VERBS.reduce((max, v) => Math.max(max, v.length), 0) + 1 // + ellipsis
 export const padVerb = (verb: string) => `${verb}…`.padEnd(VERB_PAD_LEN, ' ')
+export const formatIndicatorVerb = (style: IndicatorStyle, verb: string) =>
+  style === 'matrix' ? `「 ${padVerb(verb).trimEnd()} 」` : ` ${padVerb(verb)}`
 
 // Compact alternates for the `emoji` and `ascii` indicator styles.
 // Each entry is a fixed-width (display-width) glyph.
 const EMOJI_FRAMES = ['⚕ ', '🌀', '🤔', '✨', '🍵', '🔮']
 const ASCII_FRAMES = ['|', '/', '-', '\\']
+const MATRIX_ICONS = ['󱜙', '󱚣', '󰚩', '󱚟', '󱚝', '󱚡']
 
 // Faster tick for spinner-style indicators — they read as motion only
 // at frame rates closer to their authored interval.
@@ -47,7 +50,7 @@ interface IndicatorRender {
   showVerb: boolean
 }
 
-const renderIndicator = (style: IndicatorStyle, tick: number): IndicatorRender => {
+export const renderIndicator = (style: IndicatorStyle, tick: number): IndicatorRender => {
   if (style === 'kaomoji') {
     return { frame: FACES[tick % FACES.length] ?? '', intervalMs: FACE_TICK_MS, showVerb: true }
   }
@@ -68,6 +71,12 @@ const renderIndicator = (style: IndicatorStyle, tick: number): IndicatorRender =
     }
   }
 
+  if (style === 'matrix') {
+    const icon = MATRIX_ICONS[tick % MATRIX_ICONS.length] ?? '󱜙'
+
+    return { frame: `${icon} `, intervalMs: FACE_TICK_MS, showVerb: true }
+  }
+
   // 'unicode' — braille spinner (fixed 1-col).  Authored interval is
   // ~80ms; honour it but bound below at a safe minimum so React
   // re-renders stay reasonable.  This style is for users who want
@@ -82,6 +91,7 @@ const renderIndicator = (style: IndicatorStyle, tick: number): IndicatorRender =
 // module load instead of rescanning on every status render.
 const KAOMOJI_FRAME_WIDTH = FACES.reduce((max, f) => Math.max(max, stringWidth(f)), 1)
 const EMOJI_FRAME_WIDTH = EMOJI_FRAMES.reduce((max, f) => Math.max(max, stringWidth(f)), 1)
+const MATRIX_FRAME_WIDTH = Math.max(...MATRIX_ICONS.map(icon => stringWidth(`${icon} `)))
 
 const indicatorFrameWidth = (style: IndicatorStyle): number => {
   if (style === 'kaomoji') {
@@ -90,6 +100,10 @@ const indicatorFrameWidth = (style: IndicatorStyle): number => {
 
   if (style === 'emoji') {
     return EMOJI_FRAME_WIDTH
+  }
+
+  if (style === 'matrix') {
+    return MATRIX_FRAME_WIDTH
   }
 
   // 'ascii' and 'unicode' are single-column glyphs.
@@ -163,7 +177,7 @@ function FaceTicker({ color, startedAt, style }: { color: string; startedAt?: nu
 
   const { frame } = renderIndicator(style, tick)
   const verb = VERBS[verbTick % VERBS.length] ?? ''
-  const verbSegment = showVerb ? ` ${padVerb(verb)}` : ''
+  const verbSegment = showVerb ? formatIndicatorVerb(style, verb) : ''
   // Leading space keeps a gap between the frame and the duration when the
   // verb segment is hidden (e.g. `unicode` spinner style).  When the verb
   // IS shown, its trailing padding already provides the gap, so the extra
